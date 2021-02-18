@@ -82,6 +82,33 @@ vector<Persona> addEmpleado(vector<Persona> personas, string *children, string n
  return personas;
 }
 
+int first_child(bit_vector b, int i)
+{
+ rank_support_v<1> b_rank(&b);
+ bit_vector::select_0_type b_sel(&b);
+ int firstChild = (b_sel(b_rank(i)) + 1);
+ return firstChild;
+}
+
+int parent(bit_vector b, int i)
+{
+ rank_support_v<0> b_rank(&b);
+ bit_vector::select_0_type b_sel(&b);
+ bit_vector::select_1_type b_sel1(&b);
+ int parent = (b_sel(b_rank(b_sel1(b_rank(i)))) + 1);
+ return parent;
+}
+
+int next_sibling(bit_vector b, int i)
+{
+ int next = b[i + 1];
+ if (next == 1)
+ {
+		return (i + 1);
+ }
+ return 0;
+}
+
 int main()
 {
 
@@ -100,7 +127,16 @@ int main()
  {
 		cout << " nombre : " << personas[i].getName() << "\n cargo  : " << personas[i].getCargo() << "\n=======================================" << endl;
  }
- cout << "children : " << children << endl;
- cout << "unario : " << encoder_unario(personas, children) << endl;
+ bit_vector unario = encoder_unario(personas, children);
+ cout << "LOUD : " << unario << endl;
+ int fistc = first_child(unario, 1);
+ cout << "first Child : " << fistc << endl;
+ cout << "LOUD[First Child] : " << unario[fistc] << endl;
+ int siblin = next_sibling(unario, 2);
+ cout << "nextSibling : " << siblin << endl;
+ cout << "LOUD[siblin] : " << unario[siblin] << endl;
+ // int parentS = parent(unario, 3);
+ // cout << "parent : " << parentS << endl;
+ // cout << "LOUD[parent] : " << unario[parentS] << endl;
  return 0;
 }
