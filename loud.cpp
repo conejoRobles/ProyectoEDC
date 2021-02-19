@@ -60,14 +60,14 @@ int next_sibling(bit_vector b, int i)
 }
 
 /*Parent, este método devulve un entero que representa el indice dentro del bit_vector con el padre de un nodo dado,
-al ser nodo raiz el método retorna -1*/
+al ser nodo raiz el método retorna el mismo nodo*/
 int parent(bit_vector b, int i)
 {
  rank_support_v<0> b_rank(&b);
  bit_vector::select_1_type b_sel(&b);
  if (b_rank(i) == 0)
  {
-		return -1;
+		return 0;
  }
  int parent = b_sel(b_rank(i));
  return parent;
@@ -86,7 +86,7 @@ int child(bit_vector b, int p, int i)
 void data(bit_vector b, vector<Persona> personas, int i)
 {
  rank_support_v<1> b_rank(&b);
- cout << " id     : " << b_rank(i) << "\n nombre : " << personas[b_rank(i)].getName() << "\n cargo  : " << personas[b_rank(i)].getCargo() << endl;
+ cout << " nombre : " << personas[b_rank(i)].getName() << "\n cargo  : " << personas[b_rank(i)].getCargo() << endl;
 }
 
 //Método para creación de bit_vector códificado en unario basado en "1"
@@ -172,9 +172,10 @@ int main()
  }
  bit_vector unario = encoder_unario(personas, children);
  rank_support_v<1> b_rank(&unario);
+ bit_vector::select_1_type b_sel(&unario);
  bool salir = false;
  int sal;
- int padre = 0;
+ int nodo = 0;
  int hijo = -1;
  while (!salir)
  {
@@ -187,15 +188,17 @@ int main()
 		cout << "= 6) Imprimir Árbol     =" << endl;
 		cout << "= 7) Salir              =" << endl;
 		cout << "=========================" << endl;
+		cout << "Indique una opción: ";
 		cin >> sal;
+		cout << unario << endl;
 		switch (sal)
 		{
 		case 1:
 			cout << "Indique el nodo del cual desea saber sus subordinados: ";
-			cin >> padre;
-			padre = b_rank(padre + 1);
-			cout << padre << "adsjksdjfalksjdflasjdfl" << endl;
-			hijo = first_child(unario, padre);
+			cin >> nodo;
+			nodo = b_sel(nodo);
+			hijo = first_child(unario, nodo);
+			cout << nodo << "NODO" << endl;
 			cout << "\n========= Lista de Subordinados ==========\n"
 								<< endl;
 			if (hijo == -1)
@@ -213,8 +216,41 @@ int main()
 			}
 			break;
 		case 2:
+			cout << "Indique el nodo del cual desea saber su jefe: ";
+			cin >> nodo;
+			nodo = b_sel(nodo);
+			hijo = parent(unario, nodo);
+			data(unario, personas, hijo);
 			break;
 		case 3:
+			cout << "Indique el nodo del cual desea saber sus colegas: ";
+			cin >> nodo;
+			nodo = b_sel(nodo);
+			hijo = parent(unario, nodo);
+			hijo = first_child(unario, hijo);
+			cout << hijo << endl;
+			if (nodo == 0)
+			{
+				cout << "\n=========================================\n";
+				cout << "\nESTE TRABAJADOR NO POSEE COLEGAS\n";
+				cout << "\n=========================================\n"
+									<< endl;
+			}
+			else
+			{
+				cout << "\n============ Lista de Colegas ==============\n"
+									<< endl;
+				while (hijo > -1)
+				{
+					if (hijo != nodo)
+					{
+						data(unario, personas, hijo);
+						cout << "\n==========================================\n"
+											<< endl;
+					}
+					hijo = next_sibling(unario, hijo);
+				}
+			}
 			break;
 		case 4:
 			break;
