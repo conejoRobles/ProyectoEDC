@@ -60,14 +60,14 @@ int next_sibling(bit_vector b, int i)
 }
 
 /*Parent, este método devulve un entero que representa el indice dentro del bit_vector con el padre de un nodo dado,
-al ser nodo raiz el método retorna el mismo nodo*/
+al ser nodo raiz el método retorna -1*/
 int parent(bit_vector b, int i)
 {
  rank_support_v<0> b_rank(&b);
  bit_vector::select_1_type b_sel(&b);
  if (b_rank(i) == 0)
  {
-		return 0;
+		return -1;
  }
  int parent = b_sel(b_rank(i));
  return parent;
@@ -152,6 +152,16 @@ vector<Persona> addEmpleado(vector<Persona> personas, string *children, string n
  return personas;
 }
 
+void soutPersonas(vector<Persona> personas)
+{
+ cout << "\n========= Lista de Empleados ==========\n"
+						<< endl;
+ for (int i = 0; i < personas.size(); i++)
+ {
+		cout << " id     : " << (i + 1) << "\n nombre : " << personas[i].getName() << "\n cargo  : " << personas[i].getCargo() << "\n=======================================" << endl;
+ }
+}
+
 int main()
 {
 
@@ -163,20 +173,17 @@ int main()
 
  personas = addEmpleado(personas, &children, "start");
 
- cout << "\n========= Lista de Empleados ==========\n"
-						<< endl;
-
- for (int i = 0; i < personas.size(); i++)
- {
-		cout << " id     : " << (i + 1) << "\n nombre : " << personas[i].getName() << "\n cargo  : " << personas[i].getCargo() << "\n=======================================" << endl;
- }
  bit_vector unario = encoder_unario(personas, children);
  rank_support_v<1> b_rank(&unario);
  bit_vector::select_1_type b_sel(&unario);
+ vector<int> jefes;
  bool salir = false;
+ bool pillado = false;
+ string nombre;
  int sal;
  int nodo = 0;
  int hijo = -1;
+ soutPersonas(personas);
  while (!salir)
  {
 		cout << "========== MENU =========" << endl;
@@ -194,6 +201,7 @@ int main()
 		switch (sal)
 		{
 		case 1:
+			soutPersonas(personas);
 			cout << "Indique el nodo del cual desea saber sus subordinados: ";
 			cin >> nodo;
 			nodo = b_sel(nodo);
@@ -216,19 +224,33 @@ int main()
 			}
 			break;
 		case 2:
+			soutPersonas(personas);
 			cout << "Indique el nodo del cual desea saber su jefe: ";
 			cin >> nodo;
-			nodo = b_sel(nodo);
-			hijo = parent(unario, nodo);
-			data(unario, personas, hijo);
+			if (nodo == 1)
+			{
+				cout << "\n=========================================\n";
+				cout << "Este trabajador no posee jefes";
+				cout << "\n=========================================\n"
+									<< endl;
+			}
+			else
+			{
+				nodo = b_sel(nodo);
+				hijo = parent(unario, nodo);
+				cout << "\n=========================================\n";
+				data(unario, personas, hijo);
+				cout << "\n=========================================\n"
+									<< endl;
+			}
 			break;
 		case 3:
+			soutPersonas(personas);
 			cout << "Indique el nodo del cual desea saber sus colegas: ";
 			cin >> nodo;
 			nodo = b_sel(nodo);
 			hijo = parent(unario, nodo);
 			hijo = first_child(unario, hijo);
-			cout << hijo << endl;
 			if (nodo == 0)
 			{
 				cout << "\n=========================================\n";
@@ -253,10 +275,56 @@ int main()
 			}
 			break;
 		case 4:
+			soutPersonas(personas);
+			cout << "Indique el nodo del cual desea saber su cadena de mando: ";
+			cin >> nodo;
+			if (nodo == 1)
+			{
+				cout << "\n=========================================\n";
+				cout << "Este trabajador no posee jefes";
+				cout << "\n=========================================\n"
+									<< endl;
+			}
+			else
+			{
+				nodo = b_sel(nodo);
+				hijo = parent(unario, nodo);
+				cout << "\n"
+									<< endl;
+				while (hijo > -1)
+				{
+					jefes.push_back(hijo);
+					hijo = parent(unario, hijo);
+				}
+				if (!jefes.empty())
+				{
+					cout << "\n============ Cadena de Mando =============\n"
+										<< endl;
+					for (int i = (jefes.size()); i > 0; i--)
+					{
+						data(unario, personas, jefes[i - 1]);
+						cout << "\n==========================================\n"
+											<< endl;
+					}
+					jefes.clear();
+				}
+			}
 			break;
 		case 5:
+			getline(cin, nombre);
+			cout << "Indique el nombre del nodo a buscar: ";
+			getline(cin, nombre);
+			for (int i = 0; i < personas.size(); i++)
+			{
+				if (!personas[i].getName().compare(nombre))
+				{
+					cout << "\n==========================================\n";
+					cout << " id     : " << (i + 1) << "\n nombre : " << personas[i].getName() << "\n cargo  : " << personas[i].getCargo() << "\n=======================================" << endl;
+				}
+			}
 			break;
 		case 6:
+			soutPersonas(personas);
 			break;
 		case 7:
 			salir = !salir;
