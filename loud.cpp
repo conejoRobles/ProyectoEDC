@@ -83,10 +83,17 @@ int child(bit_vector b, int p, int i)
 }
 
 //Data, este método es básicamente un toString a partir de un indice de referencia dentro del bit_vector
-void data(bit_vector b, vector<Persona> personas, int i)
+void data(bit_vector b, vector<Persona> personas, int i, bool cargo)
 {
  rank_support_v<1> b_rank(&b);
- cout << " nombre : " << personas[b_rank(i)].getName() << "\n cargo  : " << personas[b_rank(i)].getCargo() << endl;
+ if (cargo)
+ {
+		cout << " nombre : " << personas[b_rank(i)].getName() << "\n cargo  : " << personas[b_rank(i)].getCargo() << endl;
+ }
+ else
+ {
+		cout << " nombre : " << personas[b_rank(i)].getName() << endl;
+ }
 }
 
 //Método para creación de bit_vector códificado en unario basado en "1"
@@ -162,6 +169,44 @@ void soutPersonas(vector<Persona> personas)
  }
 }
 
+void tree(bit_vector b, vector<Persona> personas, int i, int tab)
+{
+ bit_vector::select_1_type b_sel(&b);
+ int nodo;
+ int hijo;
+ tab++;
+ if (i == 0)
+ {
+		nodo = b_sel(i + 1);
+ }
+ else
+ {
+		nodo = b_sel(i);
+ }
+ hijo = first_child(b, nodo);
+ if (hijo > -1)
+ {
+		for (i = 0; i < tab; i++)
+		{
+			cout << "\t";
+		}
+		cout << "- ";
+		data(b, personas, hijo, false);
+		tree(b, personas, hijo, tab);
+		hijo = next_sibling(b, hijo);
+		while (hijo > -1)
+		{
+			for (i = 0; i < tab; i++)
+			{
+				cout << "\t";
+			}
+			cout << "- ";
+			data(b, personas, hijo, false);
+			tree(b, personas, hijo, tab);
+		}
+ }
+}
+
 int main()
 {
 
@@ -217,7 +262,7 @@ int main()
 			}
 			while (hijo > -1)
 			{
-				data(unario, personas, hijo);
+				data(unario, personas, hijo, true);
 				cout << "\n==========================================\n"
 									<< endl;
 				hijo = next_sibling(unario, hijo);
@@ -239,7 +284,7 @@ int main()
 				nodo = b_sel(nodo);
 				hijo = parent(unario, nodo);
 				cout << "\n=========================================\n";
-				data(unario, personas, hijo);
+				data(unario, personas, hijo, true);
 				cout << "\n=========================================\n"
 									<< endl;
 			}
@@ -266,7 +311,7 @@ int main()
 				{
 					if (hijo != nodo)
 					{
-						data(unario, personas, hijo);
+						data(unario, personas, hijo, true);
 						cout << "\n==========================================\n"
 											<< endl;
 					}
@@ -302,7 +347,7 @@ int main()
 										<< endl;
 					for (int i = (jefes.size()); i > 0; i--)
 					{
-						data(unario, personas, jefes[i - 1]);
+						data(unario, personas, jefes[i - 1], true);
 						cout << "\n==========================================\n"
 											<< endl;
 					}
@@ -324,7 +369,10 @@ int main()
 			}
 			break;
 		case 6:
-			soutPersonas(personas);
+			cout << "-";
+			data(unario, personas, 0, false);
+			tree(unario, personas, nodo, 0);
+			// soutPersonas(personas);
 			break;
 		case 7:
 			salir = !salir;
