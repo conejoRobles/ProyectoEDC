@@ -117,44 +117,46 @@ bit_vector encoder_unario(vector<Persona> personas, string children)
 }
 
 //Método para creación de Organigrama
-vector<Persona> addEmpleado(vector<Persona> personas, string *children, string nombrePadre)
+vector<Persona> addEmpleado(vector<Persona> personas, string *children, string nombrePadre, int indice)
 {
  string nombre;
  string cargo;
  string subordinados;
  string auxChild = (*children);
- if (nombrePadre.compare("start") != 0)
- {
-		cout << "\nInserte el nombre del trabajador(a) subordinado de " << nombrePadre << "\n"
-							<< endl;
-		getline(cin, nombre);
-		cout << "\nInserte el cargo del trabajador(a) " << nombre << "\n"
-							<< endl;
-		getline(cin, cargo);
-		cout << "\nCuantos subordinados posee " << nombre << "?\n"
-							<< endl;
-		cin >> subordinados;
- }
- else
+
+ if (indice == 0)
  {
 		cout << "\nInserte el nombre del trabajador(a)\n"
 							<< endl;
 		getline(cin, nombre);
-		cout << "\nInserte el cargo del trabajador(a)\n"
-							<< endl;
-		getline(cin, cargo);
-		cout << "\nCuantos subordinados posee " << nombre << "?\n"
-							<< endl;
-		cin >> subordinados;
  }
- *children = auxChild.append(subordinados);
+ else
+ {
+		nombrePadre = personas[indice].getName();
+		getline(cin, nombre);
+		cout << "\nInserte el nombre del trabajador(a) subordinado de " << nombrePadre << "\n"
+							<< endl;
+		getline(cin, nombre);
+ }
+ cout << "\nInserte el cargo del trabajador(a) " << nombre << "\n"
+						<< endl;
+ getline(cin, cargo);
+ cout << "\nCuantos subordinados posee " << nombre << "?\n"
+						<< endl;
+ cin >> subordinados;
 
+ *children = auxChild.append(subordinados);
  Persona persona1 = Persona(nombre, cargo);
- personas.push_back(persona1);
- getline(cin, auxChild);
+ personas[indice] = persona1;
+
  for (int i = 0; i < stoi(subordinados); i++)
  {
-		personas = addEmpleado(personas, children, nombre);
+		Persona persona1 = Persona(nombre, cargo);
+		personas.push_back(persona1);
+ }
+ if ((indice + 1) < personas.size())
+ {
+		personas = addEmpleado(personas, children, nombre, (indice + 1));
  }
  return personas;
 }
@@ -183,19 +185,16 @@ void tree(bit_vector b, vector<Persona> personas, int i, int tab)
  {
 		nodo = b_sel(i);
  }
- hijo = first_child(b, nodo);
- if (hijo > -1)
+ if (nodo < b.size())
  {
-		for (i = 0; i < tab; i++)
+		hijo = first_child(b, nodo);
+		if (hijo > -1)
 		{
-			cout << "\t";
-		}
-		cout << "- ";
-		data(b, personas, hijo, false);
-		tree(b, personas, hijo, tab);
-		hijo = next_sibling(b, hijo);
-		while (hijo > -1)
-		{
+			for (i = 0; i < tab; i++)
+			{
+				cout << "\t";
+			}
+			cout << "|\n";
 			for (i = 0; i < tab; i++)
 			{
 				cout << "\t";
@@ -203,6 +202,23 @@ void tree(bit_vector b, vector<Persona> personas, int i, int tab)
 			cout << "- ";
 			data(b, personas, hijo, false);
 			tree(b, personas, hijo, tab);
+			hijo = next_sibling(b, hijo);
+			while (hijo > -1)
+			{
+				for (i = 0; i < tab; i++)
+				{
+					cout << "\t";
+				}
+				cout << "|\n";
+				for (i = 0; i < tab; i++)
+				{
+					cout << "\t";
+				}
+				cout << "- ";
+				data(b, personas, hijo, false);
+				tree(b, personas, hijo, tab);
+				hijo = next_sibling(b, hijo);
+			}
 		}
  }
 }
@@ -215,8 +231,8 @@ int main()
 
  cout << "\n======= LOUD PARA ORGANIGRAMAS ========\n"
 						<< endl;
-
- personas = addEmpleado(personas, &children, "start");
+ personas.push_back({"asdlkfj", "aksdfjalsdf"});
+ personas = addEmpleado(personas, &children, "start", 0);
 
  bit_vector unario = encoder_unario(personas, children);
  rank_support_v<1> b_rank(&unario);
@@ -242,7 +258,7 @@ int main()
 		cout << "=========================" << endl;
 		cout << "Indique una opción: ";
 		cin >> sal;
-		cout << unario << endl;
+		cout << "\nbit vector: " << unario << endl;
 		switch (sal)
 		{
 		case 1:
@@ -251,7 +267,6 @@ int main()
 			cin >> nodo;
 			nodo = b_sel(nodo);
 			hijo = first_child(unario, nodo);
-			cout << nodo << "NODO" << endl;
 			cout << "\n========= Lista de Subordinados ==========\n"
 								<< endl;
 			if (hijo == -1)
@@ -293,10 +308,7 @@ int main()
 			soutPersonas(personas);
 			cout << "Indique el nodo del cual desea saber sus colegas: ";
 			cin >> nodo;
-			nodo = b_sel(nodo);
-			hijo = parent(unario, nodo);
-			hijo = first_child(unario, hijo);
-			if (nodo == 0)
+			if (nodo == 1)
 			{
 				cout << "\n=========================================\n";
 				cout << "\nESTE TRABAJADOR NO POSEE COLEGAS\n";
@@ -305,6 +317,9 @@ int main()
 			}
 			else
 			{
+				nodo = b_sel(nodo);
+				hijo = parent(unario, nodo);
+				hijo = first_child(unario, hijo);
 				cout << "\n============ Lista de Colegas ==============\n"
 									<< endl;
 				while (hijo > -1)
