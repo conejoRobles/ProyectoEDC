@@ -283,6 +283,7 @@ int main()
 				hijo = next_sibling(unario, hijo);
 			}
 			break;
+
 		case 2:
 			soutPersonas(personas);
 			cout << "Indique el nodo del cual desea saber su jefe: ";
