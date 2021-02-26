@@ -2,8 +2,65 @@
 #include <algorithm>
 #include <sdsl/bit_vectors.hpp>
 #include <vector>
+#include "Util_TimeMesure.h"
+
 using namespace std;
 using namespace sdsl;
+
+void uswtime(double *usertime, double *systime, double *walltime)
+{
+ //double mega = 1.0e-6;
+ struct rusage buffer;
+ struct timeval tp;
+ struct timezone tzp;
+
+ getrusage(RUSAGE_SELF, &buffer);
+ gettimeofday(&tp, &tzp);
+ *usertime = (double)buffer.ru_utime.tv_sec + 1.0e-6 * buffer.ru_utime.tv_usec;
+ *systime = (double)buffer.ru_stime.tv_sec + 1.0e-6 * buffer.ru_stime.tv_usec;
+ *walltime = (double)tp.tv_sec + 1.0e-6 * tp.tv_usec;
+}
+Cronometer *cCronometer()
+{
+ Cronometer *c = (Cronometer *)malloc(sizeof(Cronometer));
+ c->utime0 = 0;
+ c->utime1 = 0;
+ c->stime0 = 0;
+ c->stime1 = 0;
+ c->wtime0 = 0;
+ c->wtime1 = 0;
+ return c;
+}
+
+//inicia o reinicia el cronómetro cronom
+void start_clock(Cronometer *cronom)
+{
+ uswtime(&cronom->utime0, &cronom->stime0, &cronom->wtime0);
+}
+
+//detiene el cronómetro y devuelve el timepo de CPU (user+system) en segundos
+//si el cronometro no se ha inciado retorna un valor negativo.
+double stop_clock(Cronometer *cronom)
+{
+ uswtime(&cronom->utime1, &cronom->stime1, &cronom->wtime1);
+ return (cronom->utime1 - cronom->utime0 + cronom->stime1 - cronom->stime0);
+}
+
+//entrega los tiempos si el cronometro esta detenido, de otro modo entrega -1
+double userTime(Cronometer *cronom)
+{
+ ;
+
+ return (cronom->utime1 != 0) ? cronom->utime1 - cronom->utime0 : -1;
+}
+double sysTime(Cronometer *cronom)
+{
+ return (cronom->stime1 != 0) ? cronom->stime1 - cronom->stime0 : -1;
+}
+double wallTime(Cronometer *cronom)
+{
+ return (cronom->wtime1 != 0) ? cronom->wtime1 - cronom->wtime0 : -1;
+}
 
 //Clase Persona (PARA ORGANIGRAMA)
 class Persona
@@ -116,6 +173,35 @@ bit_vector encoder_unario(vector<Persona> personas, string children)
  return out;
 }
 
+//Método para creación de bit_vector códificado en unario basado en "1"
+bit_vector encoder_unario2(vector<Persona> personas)
+{
+ string children = "10";
+ int num = 0;
+ for (int i = 0; i < personas.size(); i++)
+ {
+		num = rand() % 50;
+		for (int j = 0; j < num; j++)
+		{
+			children.append("1");
+		}
+		children.append("0");
+ }
+ for (int i = 0; i < num; i++)
+ {
+		children.append("0");
+ }
+ bit_vector out(children.length(), 1); //bitvetor de tama  o n lleno de 1
+ for (int i = 0; i < out.size(); i++)
+ {
+		if (children.at(i) == '0')
+		{
+			out[i] = 0;
+		}
+ }
+ return out;
+}
+
 //Método para creación de Organigrama
 vector<Persona> addEmpleado(vector<Persona> personas, string *children, string nombrePadre, int indice)
 {
@@ -157,6 +243,23 @@ vector<Persona> addEmpleado(vector<Persona> personas, string *children, string n
  if ((indice + 1) < personas.size())
  {
 		personas = addEmpleado(personas, children, nombre, (indice + 1));
+ }
+ return personas;
+}
+
+//Método para creación de Organigrama para experimento
+vector<Persona> genNodos(vector<Persona> personas, int cantidad)
+{
+ string nombre = "nombre ";
+ string cargo = "cargo ";
+
+ for (int i = 0; i < cantidad; i++)
+ {
+		nombre = "nombre ";
+		cargo = "cargo ";
+		nombre.append(to_string(i + 1));
+		cargo.append(to_string(i + 1));
+		personas.push_back({nombre, cargo});
  }
  return personas;
 }
@@ -225,6 +328,15 @@ void tree(bit_vector b, vector<Persona> personas, int i, int tab)
 
 int main()
 {
+ Cronometer *cronom = cCronometer();
+ Cronometer *cronom2 = cCronometer();
+ Cronometer *cronom3 = cCronometer();
+ Cronometer *cronom4 = cCronometer();
+ double cpuTime = 0;
+ double cpuTime2 = 0;
+ double cpuTime3 = 0;
+ double cpuTime4 = 0;
+ int contador = 0;
 
  string children = "1";
  vector<Persona> personas;
@@ -243,6 +355,7 @@ int main()
  string nombre;
  int sal;
  int nodo = 0;
+ int cantidad = 0;
  int hijo = -1;
  soutPersonas(personas);
  while (!salir)
@@ -254,11 +367,11 @@ int main()
 		cout << "= 4) Cadena de mando    =" << endl;
 		cout << "= 5) Buscar Nodo        =" << endl;
 		cout << "= 6) Imprimir Árbol     =" << endl;
-		cout << "= 7) Salir              =" << endl;
+		cout << "= 7) Experimento        =" << endl;
+		cout << "= 8) Salir              =" << endl;
 		cout << "=========================" << endl;
 		cout << "Indique una opción: ";
 		cin >> sal;
-		cout << "\nbit vector: " << unario << endl;
 		switch (sal)
 		{
 		case 1:
@@ -391,6 +504,88 @@ int main()
 			// soutPersonas(personas);
 			break;
 		case 7:
+			personas.clear();
+			cantidad = 0;
+			children = "1";
+			cout << "Ingrese la cantidad de elementos : ";
+			cin >> cantidad;
+			personas = genNodos(personas, cantidad);
+			unario = encoder_unario2(personas);
+
+			cantidad = 0;
+			contador = 0;
+			cronom = cCronometer();
+			start_clock(cronom);
+			while (contador < 50)
+			{
+				cantidad++;
+				if (unario[cantidad] == 1)
+				{
+					contador++;
+					first_child(unario, cantidad);
+				}
+			}
+			cpuTime = stop_clock(cronom);
+
+			cantidad = 0;
+			contador = 0;
+			cronom = cCronometer();
+			start_clock(cronom2);
+			while (contador < 50)
+			{
+				cantidad++;
+				if (unario[cantidad] == 1)
+				{
+					contador++;
+					next_sibling(unario, cantidad);
+				}
+			}
+			cpuTime2 = stop_clock(cronom2);
+
+			cantidad = 0;
+			contador = 0;
+			cronom = cCronometer();
+			start_clock(cronom3);
+			while (contador < 50)
+			{
+				cantidad++;
+				if (unario[cantidad] == 1)
+				{
+					contador++;
+					parent(unario, cantidad);
+				}
+			}
+			cpuTime3 = stop_clock(cronom3);
+
+			cantidad = 0;
+			contador = 0;
+			cronom = cCronometer();
+			start_clock(cronom4);
+			while (contador < 50)
+			{
+				cantidad++;
+				if (unario[cantidad] == 1)
+				{
+					contador++;
+					data(unario, personas, cantidad, false);
+				}
+			}
+			cpuTime4 = stop_clock(cronom4);
+
+			cout << "\n FIRST CHILD 50 NODOS: " << cpuTime << " ";
+			cpuTime += 1000000.0;
+			cout << cpuTime << endl;
+			cout << "\n NEXT SIBLING 50 NODOS: " << cpuTime2 << " ";
+			cpuTime2 += 1000000.0;
+			cout << cpuTime2 << endl;
+			cout << "\n Parent 50 NODOS: " << cpuTime3 << " ";
+			cpuTime3 += 1000000.0;
+			cout << cpuTime3 << endl;
+			cout << "\n Data 50 NODOS: " << cpuTime4 << " ";
+			cpuTime4 += 1000000.0;
+			cout << cpuTime4 << endl;
+			break;
+		case 8:
 			salir = !salir;
 			break;
 		deaful:
