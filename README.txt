@@ -1,5 +1,21 @@
  
 Hola profesor,
+Espero que esté teniendo un buen día,
+El código se encuentra en el archivo loud.cpp
+El paper se llama "LOUDS-Matías Robles.pdf"
+
+Hice uso de sdls lite pero únicamente para bit_vector select y rank
+
+Espero que pueda utilizarlo sin problemas y en caso de fallar algo, estaré atento y disponible mientras el internet de Entel
+me lo permita.
+
+Muchas gracias por su tiempo, disponibilidad y conocimiento entregado.
+atte.
+Matías Andrés Robles Díaz.(conejo)
+
+
+=======INSTRUCCIONES DE COMPILACIÓN Y EJECUCIÓN=======
+
 Para poder ejecutar el programa basta con descomprimir y ejecutar con los siguiente comandos:
 
 sudo ./compile loud
